@@ -19,7 +19,7 @@ The Grocery Management Tool is designed to help users manage their groceries, ge
 ### Prerequisites
 - Python 3.8+
 - Django 3.2+
-- PostgreSQL or MongoDB
+- PostgreSQL
 - Twilio Account (for SMS OTP)
 - SendGrid Account (for Email OTP)
 - Edamam/Spoonacular API keys
