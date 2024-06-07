@@ -3,12 +3,14 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 
 from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle,AnonRateThrottle
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserSerializer, OTPSerializer, RegistrationSerializer, LoginSerializer
+from .models import Team
+from .serializers import *
 
 User = get_user_model()
 
@@ -118,3 +120,73 @@ class VerifyLoginOTPView(generics.GenericAPIView):
             'access': str(refresh.access_token),
             'user': UserSerializer(user).data
         }, status=status.HTTP_200_OK)
+    
+
+'''
+Family/Team Mebers modification views
+'''
+class CreateTeamView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        
+        if user.team:
+            return Response({'message': 'You are already in a team'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        team = Team.objects.create()
+        user.team = team
+        user.save()
+
+        return Response({'message': 'Team created successfully', 'team': TeamSerializer(team).data}, status=status.HTTP_201_CREATED)
+    
+
+class InviteMemberView(generics.GenericAPIView):
+    serializer_class = InviteMemberSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        if not user.team:
+            return Response({'message': 'You are not in a team'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(team=user.team).count() >= 6:
+            return Response({'message': 'Team is full'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        invited_user = User.objects.filter(email=email).first()
+
+        if invited_user:
+            invited_user.team = user.team
+            invited_user.save()
+            
+            return Response({'message': 'User added to team successfully'}, UserSerializer(invited_user).data, status=status.HTTP_200_OK)
+        
+        return Response({'message': 'User not found', 'team': TeamSerializer(user.team).data}, status=status.HTTP_400_BAD_REQUEST)    
+
+class RemoveMemberView(generics.GenericAPIView):
+    serializer_class = RemoveMemberSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+
+        if not user.team:
+            return Response({'message': 'User not in a team'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        member = User.objects.filter(email=email, team=user.team).first()
+
+        if not member:
+            member.team = None
+            member.save()
+            return Response({'message': 'Member removed from your team'}, status=status.HTTP_200_OK)
+        
+        return Response({'message': 'Member not found in your team.'}, status=status.HTTP_400_BAD_REQUEST)

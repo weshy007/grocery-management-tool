@@ -173,9 +173,9 @@ SPECTACULAR_SETTINGS = {
     'LICENCE': {'name': 'BSD License'},
     'CONTACT': {'name': '', 'email': ''},
     #OAUTH2 SPEC
-    'OAUTH2_FLOWS': [],
-    'OAUTH2_AUTHORIZATION_URL': None,
-    'OAUTH2_TOKEN_URL': None,
-    'OAUTH2_REFRESH_URL': None,
-    'OAUTH2_SCOPES': None,
+#     'OAUTH2_FLOWS': [],
+#     'OAUTH2_AUTHORIZATION_URL': None,
+#     'OAUTH2_TOKEN_URL': None,
+#     'OAUTH2_REFRESH_URL': None,
+#     'OAUTH2_SCOPES': None,
 }
