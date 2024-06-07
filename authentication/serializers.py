@@ -38,3 +38,12 @@ class TeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = Team
         fields = ['id', 'code']
+
+
+class InviteMemberSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class RemoveMemberSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
